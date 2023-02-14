@@ -1,0 +1,64 @@
+apiVersion: 1.0.0
+metadata:
+  name: devfile-quarkus2akdb
+attributes:
+  extensions.ignoreRecommendations: 'true'
+components:
+  - id: redhat/java8/latest
+    type: chePlugin
+  - mountSources: true
+    endpoints:
+      - attributes:
+          path: /
+        name: root
+        port: 8080
+    memoryLimit: 1Gi
+    type: dockerimage
+    volumes:
+      - name: m2
+        containerPath: /.m2
+    alias: quarkus2
+    image: registry.gitlab.com/ss-cloudnative/openshift/dev-quarkus2
+  - mountSources: true
+    endpoints:
+      - attributes:
+          public: 'false'
+        name: pg
+        port: 5432
+    memoryLimit: 512Mi
+    type: dockerimage
+    alias: postgres
+    image: postgres
+    env:
+      - value: /tmp/pgdata
+        name: PGDATA
+      - value: test
+        name: POSTGRES_USER
+      - value: test
+        name: POSTGRES_PASSWORD
+      - value: testdb
+        name: POSTGRES_DB
+  - id: redhat/vscode-xml/latest
+    type: chePlugin
+  - id: redhat/vscode-yaml/latest
+    type: chePlugin
+commands:
+  - name: build
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/namakemono-photos-graphql'
+        type: exec
+        command: mvn clean install
+        component: quarkus2
+  - name: run
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/namakemono-photos-graphql'
+        type: exec
+        command: |-
+           java  -jar target/quarkus-app/quarkus-run.jar
+        component: quarkus2
+  - name: psql
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/devfile-quarkus2'
+        type: exec
+        command: psql -U test -d testdb
+        component: postgres
