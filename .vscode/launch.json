@@ -1,0 +1,11 @@
+{
+	"configurations": [
+		{
+			"type": "java",
+			"name": "Remote Debug(Attach Quarkus)",
+			"request": "attach",
+      "hostname": "localhost",
+      "port": 5005
+		}
+	]
+}
